@@ -44,6 +44,10 @@ class zabbix::repo(
         $majorrelease = '10'
         $ubuntu       = 'lucid'
       }
+      /^8.*/: {
+        $majorrelease = '8'
+        $debian       = 'wheezy' # temp fix as zabbix repo does not have jessie package yet
+      }
       /^7.*/: {
         $majorrelease = '7'
         $debian       = 'wheezy'
