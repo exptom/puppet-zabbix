@@ -141,7 +141,7 @@ class zabbix::params {
   $agent_listenip                 = undef
   $agent_startagents              = '3'
   $agent_serveractive             = '127.0.0.1'
-  $agent_hostname                 = $::fqdn
+  $agent_hostname                 = undef
   $agent_hostnameitem             = 'system.hostname'
   $agent_hostmetadata             = undef
   $agent_hostmetadataitem         = undef
@@ -153,6 +153,7 @@ class zabbix::params {
   $agent_zabbix_alias             = undef
   $agent_timeout                  = '3'
   $agent_include                  = '/etc/zabbix/zabbix_agentd.d'
+  $agent_include_purge            = true
   $agent_unsafeuserparameters     = '0'
   $agent_userparameter            = undef
   $agent_loadmodulepath           = '/usr/lib/modules'

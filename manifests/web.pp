@@ -35,7 +35,7 @@
 #   When true, it will create an vhost for apache. The parameter zabbix_url
 #   has to be set.
 #
-# [*manage_resouces*]
+# [*manage_resources*]
 #   When true, it will export resources to something like puppetdb.
 #   When set to true, you'll need to configure 'storeconfigs' to make
 #   this happen. Default is set to false, as not everyone has this
@@ -153,9 +153,11 @@ class zabbix::web (
   case $database_type {
     'postgresql': {
       $db = 'pgsql'
+      $db_port = '5432'
     }
     'mysql': {
       $db = 'mysql'
+      $db_port = '3306'
     }
     default: {
       fail('unrecognized database type for server.')
@@ -250,35 +252,39 @@ class zabbix::web (
       $apache_listen_port = '80'
     }
 
+    # Check which version of Apache we're using
+    if versioncmp($::apache::apache_version, '2.4') >= 0 {
+      $directory_allow = { 'require' => 'all granted', }
+      $directory_deny = { 'require' => 'all denied', }
+    } else {
+      $directory_allow = { 'allow' => 'from all', 'order' => 'Allow,Deny', }
+      $directory_deny = { 'deny' => 'from all', 'order' => 'Deny,Allow', }
+    }
+
     apache::vhost { $zabbix_url:
       docroot         => '/usr/share/zabbix',
       port            => $apache_listen_port,
       directories     => [
-        { path     => '/usr/share/zabbix',
+        merge({
+          path     => '/usr/share/zabbix',
           provider => 'directory',
-          allow    => 'from all',
-          order    => 'Allow,Deny',
-        },
-        { path     => '/usr/share/zabbix/conf',
+        }, $directory_allow),
+        merge({
+          path     => '/usr/share/zabbix/conf',
           provider => 'directory',
-          deny     => 'from all',
-          order    => 'Deny,Allow',
-        },
-        { path     => '/usr/share/zabbix/api',
+        }, $directory_deny),
+        merge({
+          path     => '/usr/share/zabbix/api',
           provider => 'directory',
-          deny     => 'from all',
-          order    => 'Deny,Allow',
-        },
-        { path     => '/usr/share/zabbix/include',
+        }, $directory_deny),
+        merge({
+          path     => '/usr/share/zabbix/include',
           provider => 'directory',
-          deny     => 'from all',
-          order    => 'Deny,Allow',
-        },
-        { path     => '/usr/share/zabbix/include/classes',
+        }, $directory_deny),
+        merge({
+          path     => '/usr/share/zabbix/include/classes',
           provider => 'directory',
-          deny     => 'from all',
-          order    => 'Deny,Allow',
-        },
+        }, $directory_deny),
       ],
       custom_fragment => "
    php_value max_execution_time 300
